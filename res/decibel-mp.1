@@ -1,0 +1,40 @@
+.TH DECIBEL-MP 1 "May 06, 2007"
+.SH NAME
+decibel-mp \- A Simple Music Player
+.SH SYNOPSIS
+.B Usage: decibel-mp [command] [arg1 arg2...]
+.SH DESCRIPTION
+\fBDecibel\fP is an audio player that aims at being very straightforward to use. It makes use of the GStreamer library to read audio files, and allows you to remote control using DBus.
+
+.SH OPTIONS
+.TP
+\fB-Z, --remote-prev\fR
+Jump to the previous track.
+.TP
+\fB-X, --remote-next\fR
+Jump to the next track.
+.TP
+\fB-P, --remote-pause\fR
+Pause or continue playing the current track.
+.TP
+\fB-H, --remote-shufl\fR
+Shuffle the playlist.
+.TP
+\fB-C, --remote-clear\fR
+Clear the playlist.
+.TP
+\fB-A, --remote-add=* [file1 file2...]\fR
+Append the given files to the playlist.
+.TP
+\fB-S, --remote-set=* [file1 file2...]\fR
+Set the playlist to the given files.
+.TP
+\fB-V, --remote-vol=* [0~100]\fR
+Change volume to giving value.
+
+.SH SEE ALSO
+Homepage: http://decibel.silent-blade.org/
+.SH AUTHOR
+Decibel Audio Player was written by François Ingelrest <athropos@gmail.com>
+
+This manual page was written by Emilio Pozuelo Monfort <pochu@ubuntu.com>.
