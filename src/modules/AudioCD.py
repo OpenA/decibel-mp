@@ -226,12 +226,12 @@ class AudioCD(modules.ThreadedModule):
             if   status == 200: disc = info       # Success
             elif status == 210: disc = info[0]    # Exact multiple matches
             elif status == 211: disc = info[0]    # Inexact multiple matches
-            else:               raise Exception, 'Unknown disc (phase 1 returned %u)' % status
+            else:               raise Exception('Unknown disc (phase 1 returned %u)' % status)
 
             (status, info) = CDDB.read(disc['category'], disc['disc_id'])
 
             if status == 210: return info
-            else:             raise Exception, 'Unknown disc (phase 2 returned %u)' % status
+            else:             raise Exception('Unknown disc (phase 2 returned %u)' % status)
         except:
             logger.error('[%s] CDDB request failed\n\n%s' % (MOD_INFO[modules.MODINFO_NAME], traceback.format_exc()))
             return None
@@ -243,7 +243,7 @@ class AudioCD(modules.ThreadedModule):
 
         try:
             discInfo = DiscID.disc_id(DiscID.open(prefs.get(__name__, 'device', PREFS_DFT_DEVICE)))
-        except Exception, err:
+        except Exception as err:
             if err[0] == 123:
                 self.tree.replaceContent([(icons.cdromMenuIcon(), None, _('No disc found'), None)])
                 modules.postMsg(consts.MSG_CMD_EXPLORER_RENAME, {'modName': MOD_L10N, 'expName': self.expName, 'newExpName': MOD_L10N})

@@ -279,7 +279,7 @@ class Covers(modules.ThreadedModule):
             data    = stream.read()
 
             if len(data) < 1024:
-                raise Exception, 'The cover image seems incorrect (%u bytes is too small)' % len(data)
+                raise Exception('The cover image seems incorrect (%u bytes is too small)' % len(data))
         except:
             logger.error('[%s] Cover image request failed\n\n%s' % (MOD_NAME, traceback.format_exc()))
             return None

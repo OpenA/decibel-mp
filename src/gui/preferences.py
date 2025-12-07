@@ -151,8 +151,10 @@ class Preferences:
         if row[ROW_ENABLED]:
             modules.unload(name)
         else:
-            try:                             modules.load(name)
-            except modules.LoadException, e: gui.errorMsgBox(self.window, _('Unable to load this module.'), str(e))
+            try:
+                modules.load(name)
+            except Exception as e:
+                gui.errorMsgBox(self.window, _('Unable to load this module.'), str(e))
 
         self.fillList()
 

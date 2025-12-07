@@ -43,18 +43,6 @@ from gettext import gettext as _
 ) = range(4)
 
 
-class LoadException(Exception):
-    """ Raised when a module could not be loaded """
-
-    def __init__(self, errMsg):
-        """ Constructor """
-        self.errMsg = errMsg
-
-    def __str__(self):
-        """ String representation """
-        return self.errMsg
-
-
 def __checkDeps(deps):
     """ Given a list of Python modules, return a list of the modules that are unavailable """
     unmetDeps = []
@@ -78,7 +66,7 @@ def load(name):
         errMsg += '\n     * '.join(unmetDeps)
         errMsg += '\n\n'
         errMsg += _('You must install them if you want to enable this module.')
-        raise LoadException, errMsg
+        raise Exception(errMsg)
 
     # Instantiate the module
     try:
@@ -94,7 +82,7 @@ def load(name):
         mEnabledModules.append(name)
         prefs.set(__name__, 'enabled_modules', mEnabledModules)
     except:
-        raise LoadException, traceback.format_exc()
+        raise Exception( traceback.format_exc() )
 
 
 def unload(name):
