@@ -160,9 +160,6 @@
                     <property name="can_focus">True</property>
                     <property name="show_tabs">False</property>
                     <property name="show_border">False</property>
-                    <property name="tab_border">0</property>
-                    <property name="tab_hborder">0</property>
-                    <property name="tab_vborder">0</property>
                   </object>
                   <packing>
                     <property name="position">0</property>
@@ -383,9 +380,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="no_show_all">True</property>
                                     <property name="has_tooltip">True</property>
-                                    <property name="tooltip_text" translatable="yes">Seek a position in the current
-                                      track</property>
-                                    <property name="update_policy">discontinuous</property>
+                                    <property name="tooltip_text" translatable="yes">Seek a position in the current track</property>
                                     <property name="adjustment">adjustment1</property>
                                     <property name="draw_value">False</property>
                                   </object>
