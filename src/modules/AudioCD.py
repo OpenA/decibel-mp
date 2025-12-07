@@ -155,7 +155,7 @@ class AudioCD(modules.ThreadedModule):
         self.tree.replaceContent(((icons.cdromMenuIcon(), None, name, None),))
 
         # Append a child for each track
-        self.tree.appendRows([(icons.mediaFileMenuIcon(), None, _('Track %02u') % (i+1), None) for i in xrange(nbTracks)], (0,))
+        self.tree.appendRows([(icons.mediaFileMenuIcon(), None, _('Track %02u') % (i+1), None) for i in range(nbTracks)], (0,))
         self.tree.expand_all()
 
 
@@ -166,11 +166,11 @@ class AudioCD(modules.ThreadedModule):
         # Create fake CDDB information if needed
         if cddb is None:
             cddb = {'DTITLE': '%s / %s' % (consts.UNKNOWN_ARTIST, consts.UNKNOWN_ALBUM)}
-            for i in xrange(discInfo[DISC_NB_TRACKS]):
+            for i in range(discInfo[DISC_NB_TRACKS]):
                 cddb['TTITLE%u' % i] = consts.UNKNOWN_TITLE
 
         # Compute the length of each track
-        trackLen = [int(round((discInfo[DISC_FRAME1 + i + 1] - discInfo[DISC_FRAME1 + i]) / 75.0)) for i in xrange(discInfo[DISC_NB_TRACKS] - 1)]
+        trackLen = [int(round((discInfo[DISC_FRAME1 + i + 1] - discInfo[DISC_FRAME1 + i]) / 75.0)) for i in range(discInfo[DISC_NB_TRACKS] - 1)]
         trackLen.append(discInfo[DISC_LENGTH] - int(round(discInfo[DISC_FRAMEn] / 75.0)))
 
         # Update the root of the tree

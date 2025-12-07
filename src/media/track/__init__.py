@@ -330,7 +330,7 @@ class Track:
     def unserialize(self, serialTrack):
         """ Unserialize the given track"""
         tags = serialTrack.split(' ')
-        for i in xrange(0, len(tags), 2):
+        for i in range(0, len(tags), 2):
             tag = int(tags[i])
 
             if tag in (TAG_NUM, TAG_LEN, TAG_DNB, TAG_DAT, TAG_PLP, TAG_PLL, TAG_BTR, TAG_SMP, TAG_MOD): self.tags[tag] = int(tags[i+1])

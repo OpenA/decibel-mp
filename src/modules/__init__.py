@@ -346,7 +346,7 @@ class ThreadedModule(threading.Thread, ModuleBase):
 
 mModDir         = os.path.dirname(__file__)                                    # Where modules are located
 mModules        = {}                                                           # All known modules associated to an 'active' boolean
-mHandlers       = dict([(msg, set()) for msg in xrange(consts.MSG_END_VALUE)]) # For each message, store the set of registered modules
+mHandlers       = dict([(msg, set()) for msg in range(consts.MSG_END_VALUE)]) # For each message, store the set of registered modules
 mModulesLock    = threading.Lock()                                             # Protects the modules list from concurrent access
 mHandlersLock   = threading.Lock()                                             # Protects the handlers list from concurrent access
 mEnabledModules = prefs.get(__name__, 'enabled_modules', [])                   # List of modules currently enabled

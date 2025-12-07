@@ -441,7 +441,7 @@ class Tracklist(modules.Module):
         if self.btnRepeat.get_active(): nbTracks = len(self.list)
         else:                           nbTracks = len(self.list) - 1 - currIdx
 
-        for i in xrange(nbTracks):
+        for i in range(nbTracks):
             currIdx = (currIdx + 1) % len(self.list)
 
             if self.list.getItem(currIdx, ROW_ICO) != icons.errorMenuIcon():

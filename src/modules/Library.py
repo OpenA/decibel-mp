@@ -390,7 +390,7 @@ class Library(modules.Module):
                 for album in pickleLoad(os.path.join(row[ROW_FULLPATH], 'albums')):
                     tracks.extend(pickleLoad(os.path.join(row[ROW_FULLPATH], album[ALB_INDEX])))
             elif row[ROW_TYPE] == TYPE_HEADER:
-                for path in xrange(currPath[0]+1, maxint):
+                for path in range(currPath[0]+1, maxint):
                     if not tree.isValidPath(path):
                         break
 

@@ -63,7 +63,7 @@ class AutoResume(modules.Module):
             return
 
         trackIdx = -1
-        for i in xrange(len(tracklist)):
+        for i in range(len(tracklist)):
             if tracklist[i] != self.currTracklist[i]:
                 return
 
