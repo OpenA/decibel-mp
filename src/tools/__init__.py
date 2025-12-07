@@ -104,7 +104,7 @@ def downloadFile(url, cacheTimeout=3600):
         output.close()
 
         return ('', data)
-    except urllib2.HTTPError, err:
+    except urllib2.HTTPError as err:
         return ('The request failed with error code %u' % err.code, None)
     except:
         return ('The request failed', None)

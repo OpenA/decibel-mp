@@ -172,7 +172,7 @@ class Track:
     def getURI(self):
         """ Return the complete URI to the resource """
         try:    return self.tags[TAG_SCH] + '://' + self.tags[TAG_RES]
-        except: raise RuntimeError, 'The track is an unknown type of resource'
+        except: raise RuntimeError('The track is an unknown type of resource')
 
 
     def getFilename(self):

@@ -248,7 +248,7 @@ class Covers(modules.ThreadedModule):
             request = urllib2.Request(url, headers = {'User-Agent': USER_AGENT})
             stream = urllib2.urlopen(request)
             data = stream.read()
-        except urllib2.HTTPError, err:
+        except urllib2.HTTPError as err:
             if err.code == 400:
                 logger.error('[%s] No known cover for %s / %s' % (MOD_NAME, artist, album))
             else:

@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import os, threading, tools
+import os, stat, threading, tools
 
 
 # Load user preferences from the disk
@@ -31,14 +31,14 @@ def save():
     """ Save user preferences to the disk """
     __mutex.acquire()
     tools.pickleSave(tools.consts.filePrefs, __usrPrefs)
-    os.chmod(tools.consts.filePrefs, 0600)
+    os.chmod(tools.consts.filePrefs, stat.S_IWUSR | stat.S_IRUSR)
     __mutex.release()
 
 
 def set(module, name, value):
     """ Change the value of a preference """
     __mutex.acquire()
-    __usrPrefs[module + '_' + name] = value;
+    __usrPrefs[module + '_' + name] = value
     __mutex.release()
 
 
