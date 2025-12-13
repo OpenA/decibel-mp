@@ -16,8 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import consts, cPickle, gtk, os
+import os, socket, tempfile, time, atexit, pickle
 
+from urllib import request as urlReq
+from urllib import error   as urlErr
+
+# selfmodules
+import consts
 
 __dirCache = {}
 
@@ -59,7 +64,6 @@ def downloadFile(url, cacheTimeout=3600):
 
         Return a tuple (errorMsg, data) where data is None if an error occurred, errorMsg containing the error message in this case
     """
-    import socket, tempfile, time, urllib2
 
     if url in __downloadCache: cachedTime, file = __downloadCache[url]
     else:                      cachedTime, file = -cacheTimeout, None
@@ -83,8 +87,8 @@ def downloadFile(url, cacheTimeout=3600):
 
     try:
         # Retrieve the data
-        request = urllib2.Request(url)
-        stream  = urllib2.urlopen(request)
+        request = urlReq.Request(url)
+        stream  = urlReq.urlopen(request)
         data    = stream.read()
 
         # Do we need to create a new temporary file?
@@ -94,7 +98,6 @@ def downloadFile(url, cacheTimeout=3600):
 
         # On first file added to the cache, we register our clean up function
         if len(__downloadCache) == 0:
-            import atexit
             atexit.register(cleanupDownloadCache)
 
         __downloadCache[url] = (now, file)
@@ -104,7 +107,7 @@ def downloadFile(url, cacheTimeout=3600):
         output.close()
 
         return ('', data)
-    except urllib2.HTTPError as err:
+    except urlErr.HTTPError as err:
         return ('The request failed with error code %u' % err.code, None)
     except:
         return ('The request failed', None)
@@ -134,19 +137,16 @@ def loadGladeFile(file, root=None):
         return widget, builder
 
 
-def pickleLoad(file):
+def pickleLoad(file: str):
     """ Use cPickle to load the data structure stored in the given file """
-    input = open(file, 'r')
-    data  = cPickle.load(input)
-    input.close()
-    return data
+    with open(file, 'r') as input:
+        return pickle.load(input)
 
 
-def pickleSave(file, data):
+def pickleSave(file: str, data):
     """ Use cPickle to save the data to the given file """
-    output = open(file, 'w')
-    cPickle.dump(data, output)
-    output.close()
+    with open(file, 'w') as output:
+        pickle.dump(data, output)
 
 
 def touch(filePath):
