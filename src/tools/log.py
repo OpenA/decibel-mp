@@ -16,29 +16,44 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import consts
+import os, sys
 
 class Logger:
 
-    def __init__(self, filename):
+    def __init__(self, logfile: str = None):
         """ Constructor """
-        self.handler = open(filename, 'wt')
+        self._log_output_fd = None
+        self._bak_stderr_fd = None
+        # ~
+        if (logfile != None and len(logfile) != 0):
+            self._log_output_fd = open(logfile, 'a')
+            self._bak_stderr_fd = os.dup(sys.stderr.fileno())
+            os.dup2(self._log_output_fd.fileno(), sys.stderr.fileno())
 
+    def __del__(self):
+        """ Destructor """
+        if (self._log_output_fd != None):
+            os.dup2 (self._bak_stderr_fd, sys.stderr.fileno())
+            os.close(self._bak_stderr_fd)
+            self._log_output_fd.close()
+        # ~
+        self._log_output_fd = None
+        self._bak_stderr_fd = None
 
-    def __log(self, msgType, msg):
-        """ Private logging function  """
-        self.handler.write('%-6s %s\n' % (msgType, msg))
-        self.handler.flush()
+    @staticmethod
+    def puts(_T: str, msg: str):
+        """ Custom message  """
+        sys.stderr.write('%-6s %s\n' % (_T, msg))
+        sys.stderr.flush()
 
-
-    def info(self, msg):
+    @staticmethod
+    def info(inf: str):
         """ Information message """
-        self.__log('INFO', msg)
+        sys.stderr.write('INFO: {inf}\n')
+        sys.stderr.flush()
 
-
-    def error(self, msg):
+    @staticmethod
+    def error(err: str):
         """ Error message """
-        self.__log('ERROR', msg)
-
-
-logger = Logger(consts.fileLog)
+        sys.stderr.write('ERROR: {err}\n')
+        sys.stderr.flush()
