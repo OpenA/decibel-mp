@@ -16,9 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gtk
+import gui, modules
 
-from tools import consts, prefs
+from gi.repository import Gdk, Gtk
+from tools         import consts, prefs
 
 
 DEFAULT_VIEW_MODE       = consts.VIEW_MODE_FULL
@@ -30,11 +31,12 @@ DEFAULT_MAXIMIZED_STATE = False
 
 class MainWindow:
 
-    def __init__(self, wtree, window):
+    def __init__(self, main_ui_file: str):
         """ Constructor """
-        self.wtree  = wtree
-        self.paned  = wtree.get_object('pan-main')
-        self.window = window
+        self.wtree  = Gtk.Builder()
+        __________  = self.wtree.add_from_file(main_ui_file)
+        self.paned  = self.wtree.get_object('pan-main')
+        self.window = self.wtree.get_object('win-main')
 
         # Enable the right radio menu button
         viewmode = prefs.get(__name__, 'view-mode', DEFAULT_VIEW_MODE)
@@ -232,7 +234,7 @@ class MainWindow:
         self.wtree.get_object('hbox-status1').set_size_request(rect.width / 3 + 15, -1)
 
         # Save size and maximized state
-        if win.window is not None and not win.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED:
+        if win.window is not None and not win.window.get_state() & Gdk.WINDOW_STATE_MAXIMIZED:
             prefs.set(__name__, 'win-width',  rect.width)
             prefs.set(__name__, 'win-height', rect.height)
 
@@ -242,7 +244,7 @@ class MainWindow:
 
     def onState(self, win, evt):
         """ Save the new state of the window """
-        prefs.set(__name__, 'win-is-maximized', bool(evt.new_window_state & gtk.gdk.WINDOW_STATE_MAXIMIZED))
+        prefs.set(__name__, 'win-is-maximized', bool(evt.new_window_state & Gdk.WINDOW_STATE_MAXIMIZED))
 
 
     def onViewMode(self, item, mode):
@@ -253,7 +255,6 @@ class MainWindow:
 
     def onDelete(self, win, event):
         """ Use our own quit sequence, that will itself destroy the window """
-        import modules
 
         win.hide()
         modules.postQuitMsg()
@@ -263,20 +264,17 @@ class MainWindow:
 
     def onShowPreferences(self, item):
         """ Show preferences """
-        import modules
 
         modules.showPreferences()
 
 
     def onAbout(self, item):
         """ Show the about dialog box """
-        import gui.about
 
         gui.about.show(self.window)
 
 
     def onHelp(self, item):
         """ Show help page in the web browser """
-        import webbrowser
 
-        webbrowser.open(consts.urlHelp)
+        # TODO: open help file
