@@ -48,8 +48,24 @@ for i in "$@"; do
   esac
 done
 
+py_player() {
+  export DECIBEL_UI_DIR="$PYDIR/gtk/"
+  export DECIBEL_HOMEURL="$HOMEURL"
+  export DECIBEL_VERSION="$VERSION"
+  export DECIBEL_APPNAME="$APPNAME"
+  export DECIBEL_CONFIG_DIR="$HOME/.config"
+  export DECIBEL_LOCALE_DIR="$DATADIR/locale"
+  export DECIBEL_OUTPUT_LOG=""
+
+  env python3 "$PYDIR/player-instance.py"
+}
+
+py_remote() {
+  env python3 "$PYDIR/remote-control.py" "$@"
+}
+
 if [ ! -z $p_ctrl ]; then
-  python3 "$PYDIR/remote-control.py" "$p_ctrl" "$p_list"
+  py_remote "$p_ctrl" "$p_list"
 else
-  python3 "$PYDIR/player-instance.py"
+  py_player
 fi

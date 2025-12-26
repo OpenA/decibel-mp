@@ -16,46 +16,44 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import os, stat, threading, tools
+import configparser
 
+CONFIG_FILE = 'settings.ini'
+PFX_WINMAIN = 'MainWindow'
+PFX_USER    = 'UserPrefs'
 
-# Load user preferences from the disk
-try:    __usrPrefs = tools.pickleLoad(tools.consts.filePrefs)
-except: __usrPrefs = {}
+class UserPrefs():
 
-__mutex      = threading.Lock() # Prevent concurrent calls to functions
-__appGlobals = {}               # Some global values shared by all the components of the application
+    def __init__(self, cfg_dir: str):
+        self._cfg = configparser.ConfigParser()
+        self._dir = cfg_dir
 
+    def load(self, file: str = CONFIG_FILE):
+        """ Load user preferences from the config dir use Ini format """
+        with open(self._dir + file, 'r') as input:
+            self._cfg.read_file(input)
 
-def save():
-    """ Save user preferences to the disk """
-    __mutex.acquire()
-    tools.pickleSave(tools.consts.filePrefs, __usrPrefs)
-    os.chmod(tools.consts.filePrefs, stat.S_IWUSR | stat.S_IRUSR)
-    __mutex.release()
+    def save(self, file: str = CONFIG_FILE):
+        """ Save user preferences to the config dir use Ini format """
+        with open(self._dir + file, 'w') as output:
+            self._cfg.write(output)
 
+    def set(self, key: str, val: str | int | float | bool, pfx: str = PFX_WINMAIN):
+        """ Change the value of a preference """
+        self._cfg[pfx][key] = f'{val}' if type(val) is not bool else 'yes' if val else 'no'
 
-def set(module, name, value):
-    """ Change the value of a preference """
-    __mutex.acquire()
-    __usrPrefs[module + '_' + name] = value
-    __mutex.release()
+    def get(self, key: str, pfx: str = PFX_WINMAIN):
+        """ Retrieve the value of a preference """
+        return self._cfg[pfx][key]
 
+    def set_defaults(self, pfx: str, params: list[tuple]):
+        """ Init default values without rewriting existings """
+        if pfx not in self._cfg:
+            self._cfg.add_section(pfx)
+        for (k,v) in params:
+            if k not in self._cfg[pfx]:
+                self.set(k, v, pfx)
 
-def get(module, name, default=None):
-    """ Retrieve the value of a preference """
-    __mutex.acquire()
-    try:    value = __usrPrefs[module + '_' + name]
-    except: value = default
-    __mutex.release()
-    return value
-
-
-# Command line used to start the application
-def setCmdLine(cmdLine): __appGlobals['cmdLine'] = cmdLine
-def getCmdLine():        return __appGlobals['cmdLine']
-
-
-# Main widgets' tree created by Glade
-def setWidgetsTree(tree): __appGlobals['wTree'] = tree
-def getWidgetsTree():     return __appGlobals['wTree']
+    def get_int  (self, key: str, pfx: str = PFX_WINMAIN): return int      (self.get(key, pfx))
+    def get_bool (self, key: str, pfx: str = PFX_WINMAIN): return ('yes' == self.get(key, pfx))
+    def get_float(self, key: str, pfx: str = PFX_WINMAIN): return float    (self.get(key, pfx))

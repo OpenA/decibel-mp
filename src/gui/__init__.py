@@ -16,23 +16,41 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gtk, tools
+import gi
 
+gi.require_version('Gtk', '3.0')
 
-def __msgBox(parent, type, buttons, header, text):
-    """ Show a generic message box """
-    dlg = gtk.MessageDialog(parent, gtk.DIALOG_MODAL, type, buttons, header)
-    dlg.set_title(tools.consts.appName)
+from gi.repository import Gtk
+from tools         import consts
 
-    if text is None: dlg.set_markup(header)
-    else:            dlg.format_secondary_markup(text)
+# --- View modes
+(
+    VIEW_MODE_FULL,
+    VIEW_MODE_LEAN,
+    VIEW_MODE_MINI,
+    VIEW_MODE_PLAYLIST,
+    VIEW_MODE_NETBOOK,
+) = range(5)
 
-    response = dlg.run()
-    dlg.destroy()
-    return response
+DEFAULT_VIEW_MODE  = VIEW_MODE_FULL
+DEFAULT_PANED_POS  = 320
+DEFAULT_WIN_WIDTH  = 930
+DEFAULT_WIN_HEIGHT = 568
+DEFAULT_MAXIMIZED  = False
 
+def createWTree(file: str):
+    """ Load the given Glade file and return the tree of widgets """
+    tree = Gtk.Builder()
+    ____ = tree.add_from_file(consts.APP_UI_DIR + file)
+    return tree
 
-# Functions used to display various message boxes
-def infoMsgBox(    parent, header, text=None):        __msgBox(parent, gtk.MESSAGE_INFO,     gtk.BUTTONS_OK,     header, text)
-def errorMsgBox(   parent, header, text=None):        __msgBox(parent, gtk.MESSAGE_ERROR,    gtk.BUTTONS_OK,     header, text)
-def questionMsgBox(parent, header, text=None): return __msgBox(parent, gtk.MESSAGE_QUESTION, gtk.BUTTONS_YES_NO, header, text)
+def startUp():
+    """
+        Perform all the initialization stuff that is not mandatory to display the window
+        This function should be called within the GTK main loop, once the window has been displayed
+    """
+    Gtk.main()
+
+def atExit():
+    """ Final function, called just before exiting the Python interpreter """
+    Gtk.main_quit()

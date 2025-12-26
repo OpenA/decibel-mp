@@ -16,13 +16,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import os, socket, tempfile, time, atexit, pickle
+import os, socket, tempfile, time, atexit
 
 from urllib import request as urlReq
 from urllib import error   as urlErr
 
-# selfmodules
-import consts
+DEFAULT_SOCKET_TIMEOUT = 10
 
 __dirCache = {}
 
@@ -68,7 +67,7 @@ def downloadFile(url, cacheTimeout=3600):
     if url in __downloadCache: cachedTime, file = __downloadCache[url]
     else:                      cachedTime, file = -cacheTimeout, None
 
-    now = int(time.time())
+    now = timeNow()
 
     # If the timeout is not exceeded, get the data from the cache
     if (now - cachedTime) <= cacheTimeout:
@@ -83,7 +82,7 @@ def downloadFile(url, cacheTimeout=3600):
             pass
 
     # Make sure to not be blocked by the request
-    socket.setdefaulttimeout(consts.socketTimeout)
+    socket.setdefaulttimeout(DEFAULT_SOCKET_TIMEOUT)
 
     try:
         # Retrieve the data
@@ -123,31 +122,8 @@ def sec2str(seconds, alwaysShowHours=False):
     if alwaysShowHours or hours != 0: return '%u:%02u:%02u' % (hours, minutes, seconds)
     else:                             return '%u:%02u' % (minutes, seconds)
 
-
-def loadGladeFile(file, root=None):
-    """ Load the given Glade file and return the tree of widgets """
-    builder = gtk.Builder()
-
-    if root is None:
-        builder.add_from_file(os.path.join(consts.dirRes, file))
-        return builder
-    else:
-        builder.add_from_file(os.path.join(consts.dirRes, file))
-        widget = builder.get_object(root)
-        return widget, builder
-
-
-def pickleLoad(file: str):
-    """ Use cPickle to load the data structure stored in the given file """
-    with open(file, 'r') as input:
-        return pickle.load(input)
-
-
-def pickleSave(file: str, data):
-    """ Use cPickle to save the data to the given file """
-    with open(file, 'w') as output:
-        pickle.dump(data, output)
-
+def timeNow():
+    return int(time.time())
 
 def touch(filePath):
     """ Equivalent to the Linux 'touch' command """

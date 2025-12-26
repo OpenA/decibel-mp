@@ -49,11 +49,11 @@ class Logger:
     @staticmethod
     def info(inf: str):
         """ Information message """
-        sys.stderr.write('INFO: {inf}\n')
+        sys.stderr.write(f'INFO: {inf}\n')
         sys.stderr.flush()
 
     @staticmethod
     def error(err: str):
         """ Error message """
-        sys.stderr.write('ERROR: {err}\n')
+        sys.stderr.write(f'ERROR: {err}\n')
         sys.stderr.flush()

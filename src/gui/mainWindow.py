@@ -16,117 +16,131 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gui, modules
+import gui
 
-from gi.repository import Gdk, Gtk
-from tools         import consts, prefs
-
-
-DEFAULT_VIEW_MODE       = consts.VIEW_MODE_FULL
-DEFAULT_PANED_POS       = 320
-DEFAULT_WIN_WIDTH       = 930
-DEFAULT_WIN_HEIGHT      = 568
-DEFAULT_MAXIMIZED_STATE = False
+from gi.repository import Gdk
+from tools.prefs   import UserPrefs
+from gui.about     import MsgDialog
+from tools         import prefs
 
 
-class MainWindow:
+class MainWindow(MsgDialog):
 
-    def __init__(self, main_ui_file: str):
+    def __init__(self, p_usr: UserPrefs):
         """ Constructor """
-        self.wtree  = Gtk.Builder()
-        __________  = self.wtree.add_from_file(main_ui_file)
-        self.paned  = self.wtree.get_object('pan-main')
-        self.window = self.wtree.get_object('win-main')
+        wtree =  gui.createWTree('MainWindow.ui')
+        mmini = wtree.get_object('menu-mode-mini')
+        mfull = wtree.get_object('menu-mode-full')
+        mlean = wtree.get_object('menu-mode-lean')
+        mnetb = wtree.get_object('menu-mode-netbook')
+        mplst = wtree.get_object('menu-mode-playlist')
+        mpref = wtree.get_object('menu-preferences')
+        mabut = wtree.get_object('menu-about')
+        mhelp = wtree.get_object('menu-help')
+        mquit = wtree.get_object('menu-quit')
+        m_pan = wtree.get_object('pan-main')
+        m_win = wtree.get_object('win-main')
+
+        p_usr.set_defaults(prefs.PFX_WINMAIN, [
+            ('is-maximized', gui.DEFAULT_MAXIMIZED ),
+            ('win-width'   , gui.DEFAULT_WIN_WIDTH ),
+            ('win-height'  , gui.DEFAULT_WIN_HEIGHT),
+            ('paned-pos'   , gui.DEFAULT_PANED_POS ),
+            ('view-mode'   , gui.DEFAULT_VIEW_MODE ),
+        ])
+        super(MsgDialog, self).__init__()
+
+        self._wtr = wtree; self._pan = m_pan
+        self._opt = p_usr; self._win = m_win
 
         # Enable the right radio menu button
-        viewmode = prefs.get(__name__, 'view-mode', DEFAULT_VIEW_MODE)
+        vmode = p_usr.get_int('view-mode')
 
-        if viewmode == consts.VIEW_MODE_FULL:       self.wtree.get_object('menu-mode-full').set_active(True)
-        elif viewmode == consts.VIEW_MODE_LEAN:     self.wtree.get_object('menu-mode-lean').set_active(True)
-        elif viewmode == consts.VIEW_MODE_MINI:     self.wtree.get_object('menu-mode-mini').set_active(True)
-        elif viewmode == consts.VIEW_MODE_NETBOOK:  self.wtree.get_object('menu-mode-netbook').set_active(True)
-        elif viewmode == consts.VIEW_MODE_PLAYLIST: self.wtree.get_object('menu-mode-playlist').set_active(True)
+        if   vmode == gui.VIEW_MODE_FULL    : mfull.set_active(True)
+        elif vmode == gui.VIEW_MODE_LEAN    : mlean.set_active(True)
+        elif vmode == gui.VIEW_MODE_MINI    : mmini.set_active(True)
+        elif vmode == gui.VIEW_MODE_NETBOOK : mnetb.set_active(True)
+        elif vmode == gui.VIEW_MODE_PLAYLIST: mplst.set_active(True)
 
         # Restore the size and the state of the window
-        if prefs.get(__name__, 'win-is-maximized', DEFAULT_MAXIMIZED_STATE):
-            self.window.maximize()
+        if p_usr.get_bool('is-maximized'):
+            m_win.maximize()
 
-        savedWidth  = prefs.get(__name__, 'win-width', DEFAULT_WIN_WIDTH)
-        savedHeight = prefs.get(__name__, 'win-height', DEFAULT_WIN_HEIGHT)
-        savedPanPos = prefs.get(__name__, 'paned-pos', DEFAULT_PANED_POS)
+        i_width  = p_usr.get_int('win-width' )
+        i_height = p_usr.get_int('win-height')
+        i_pos    = p_usr.get_int('paned-pos' )
 
-        self.window.resize(savedWidth, savedHeight)
-        self.paned.set_position(savedPanPos)
-        self.window.show_all()
+        m_win.resize(i_width, i_height)
+        m_pan.set_position(i_pos)
+        m_win.show_all()
 
         # Restore the view mode
         # We set the mode to VIEW_MODE_FULL in the preferences because the window is currently in this mode (initial startup state)
-        prefs.set(__name__, 'view-mode', consts.VIEW_MODE_FULL)
-        self.setViewMode(viewmode)
+        p_usr.set('view-mode', gui.VIEW_MODE_FULL)
+        self.setViewMode(vmode)
 
         # Restore once again the size (may have been modified while restoring the view mode)
-        self.window.resize(savedWidth, savedHeight)
-        self.paned.set_position(savedPanPos)
+        m_win.resize(i_width, i_height)
+        m_pan.set_position(i_pos)
 
         # Finally connect the event handlers
-        self.window.connect('delete-event', self.onDelete)
-        self.window.connect('size-allocate', self.onResize)
-        self.window.connect('window-state-event', self.onState)
+        m_win.connect('delete-event'      , self._onQuit)
+        m_win.connect('size-allocate'     , self._onResize)
+        m_win.connect('window-state-event', self._onState)
+        m_pan.connect('size-allocate'     , self._onSizeAlloc)
 
-        self.wtree.get_object('menu-mode-mini').connect('activate', self.onViewMode, consts.VIEW_MODE_MINI)
-        self.wtree.get_object('menu-mode-full').connect('activate', self.onViewMode, consts.VIEW_MODE_FULL)
-        self.wtree.get_object('menu-mode-lean').connect('activate', self.onViewMode, consts.VIEW_MODE_LEAN)
-        self.wtree.get_object('menu-mode-netbook').connect('activate', self.onViewMode, consts.VIEW_MODE_NETBOOK)
-        self.wtree.get_object('menu-mode-playlist').connect('activate', self.onViewMode, consts.VIEW_MODE_PLAYLIST)
+        mmini.connect('activate', self.onViewMode, gui.VIEW_MODE_MINI)
+        mfull.connect('activate', self.onViewMode, gui.VIEW_MODE_FULL)
+        mlean.connect('activate', self.onViewMode, gui.VIEW_MODE_LEAN)
+        mnetb.connect('activate', self.onViewMode, gui.VIEW_MODE_NETBOOK)
+        mplst.connect('activate', self.onViewMode, gui.VIEW_MODE_PLAYLIST)
 
-        self.wtree.get_object('menu-help').connect('activate', self.onHelp)
-        self.wtree.get_object('menu-about').connect('activate', self.onAbout)
-        self.wtree.get_object('menu-preferences').connect('activate', self.onShowPreferences)
-        self.wtree.get_object('menu-quit').connect('activate', lambda item: self.onDelete(window, None))
-        self.wtree.get_object('pan-main').connect('size-allocate', lambda win, rect: prefs.set(__name__, 'paned-pos', self.paned.get_position()))
-
+        mhelp.connect('activate', self.onHelp)
+        mabut.connect('activate', self.onAbout)
+        mpref.connect('activate', self.onShowPreferences)
+        mquit.connect('activate', self._onQuit)
 
     def setViewMode(self, mode):
         """ Change the view mode to the given one """
-        currMode = prefs.get(__name__, 'view-mode', DEFAULT_VIEW_MODE)
+        currMode = self._opt.get_int('view-mode')
 
         # Give up if the new mode is the same as the current one
         if currMode == mode:
             return
 
-        requestedSize = self.window.get_size()
+        requestedSize = self._win.get_size()
 
         # First restore the initial window state (e.g., VIEW_MODE_FULL)
-        if currMode == consts.VIEW_MODE_LEAN:       requestedSize = self.__fromModeLean(requestedSize)
-        elif currMode == consts.VIEW_MODE_MINI:     requestedSize = self.__fromModeMini(requestedSize)
-        elif currMode == consts.VIEW_MODE_NETBOOK:  requestedSize = self.__fromModeNetbook(requestedSize)
-        elif currMode == consts.VIEW_MODE_PLAYLIST: requestedSize = self.__fromModePlaylist(requestedSize)
+        if   currMode == gui.VIEW_MODE_LEAN:     requestedSize = self.__fromModeLean(requestedSize)
+        elif currMode == gui.VIEW_MODE_MINI:     requestedSize = self.__fromModeMini(requestedSize)
+        elif currMode == gui.VIEW_MODE_NETBOOK:  requestedSize = self.__fromModeNetbook(requestedSize)
+        elif currMode == gui.VIEW_MODE_PLAYLIST: requestedSize = self.__fromModePlaylist(requestedSize)
 
         # Now we can switch to the new mode
-        if mode == consts.VIEW_MODE_LEAN:       requestedSize = self.__toModeLean(requestedSize)
-        elif mode == consts.VIEW_MODE_MINI:     requestedSize = self.__toModeMini(requestedSize)
-        elif mode == consts.VIEW_MODE_NETBOOK:  requestedSize = self.__toModeNetbook(requestedSize)
-        elif mode == consts.VIEW_MODE_PLAYLIST: requestedSize = self.__toModePlaylist(requestedSize)
+        if   mode == gui.VIEW_MODE_LEAN:     requestedSize = self.__toModeLean(requestedSize)
+        elif mode == gui.VIEW_MODE_MINI:     requestedSize = self.__toModeMini(requestedSize)
+        elif mode == gui.VIEW_MODE_NETBOOK:  requestedSize = self.__toModeNetbook(requestedSize)
+        elif mode == gui.VIEW_MODE_PLAYLIST: requestedSize = self.__toModePlaylist(requestedSize)
 
         # Do only one resize(), because intermediate get_size() don't return the correct size until the event queue has been processed by GTK
-        self.window.resize(requestedSize[0], requestedSize[1])
+        self._win.resize(requestedSize[0], requestedSize[1])
 
         # Save the new mode
-        prefs.set(__name__, 'view-mode', mode)
+        self._opt.set('view-mode', mode)
 
 
     # --== Lean Mode ==--
 
     def __fromModeLean(self, requestedSize):
         """ Switch from lean mode to full mode """
-        self.wtree.get_object('box-btn-tracklist').show()
+        self._wtr.get_object('box-btn-tracklist').show()
 
         return requestedSize
 
 
     def __toModeLean(self, requestedSize):
         """ Switch from full mode to lean mode """
-        self.wtree.get_object('box-btn-tracklist').hide()
+        self._wtr.get_object('box-btn-tracklist').hide()
 
         return requestedSize
 
@@ -135,15 +149,15 @@ class MainWindow:
 
     def __fromModeNetbook(self, requestedSize):
         """ Switch from netbook mode to full mode """
-        self.wtree.get_object('box-trkinfo').show()
-        self.wtree.get_object('box-btn-tracklist').show()
+        self._wtr.get_object('box-trkinfo').show()
+        self._wtr.get_object('box-btn-tracklist').show()
 
-        slider           = self.wtree.get_object('box-slider')
-        ctrlPanel        = self.wtree.get_object('box-ctrl-panel')
-        ctrlButtons      = self.wtree.get_object('box-ctrl-buttons-2')
-        comboExplorer    = self.wtree.get_object('combo-explorer')
-        ctrlButtonsBox   = self.wtree.get_object('box-ctrl-buttons-1')
-        boxComboExplorer = self.wtree.get_object('box-combo-explorer')
+        slider           = self._wtr.get_object('box-slider')
+        ctrlPanel        = self._wtr.get_object('box-ctrl-panel')
+        ctrlButtons      = self._wtr.get_object('box-ctrl-buttons-2')
+        comboExplorer    = self._wtr.get_object('combo-explorer')
+        ctrlButtonsBox   = self._wtr.get_object('box-ctrl-buttons-1')
+        boxComboExplorer = self._wtr.get_object('box-combo-explorer')
 
         slider.reparent(ctrlPanel)
         ctrlButtons.reparent(ctrlButtonsBox)
@@ -157,14 +171,14 @@ class MainWindow:
 
     def __toModeNetbook(self, requestedSize):
         """ Switch from full mode to netbook mode """
-        self.wtree.get_object('box-trkinfo').hide()
-        self.wtree.get_object('box-btn-tracklist').hide()
+        self._wtr.get_object('box-trkinfo').hide()
+        self._wtr.get_object('box-btn-tracklist').hide()
 
-        slider           = self.wtree.get_object('box-slider')
-        boxExplorer      = self.wtree.get_object('box-explorer')
-        ctrlButtons      = self.wtree.get_object('box-ctrl-buttons-2')
-        comboExplorer    = self.wtree.get_object('combo-explorer')
-        boxComboExplorer = self.wtree.get_object('box-combo-explorer')
+        slider           = self._wtr.get_object('box-slider')
+        boxExplorer      = self._wtr.get_object('box-explorer')
+        ctrlButtons      = self._wtr.get_object('box-ctrl-buttons-2')
+        comboExplorer    = self._wtr.get_object('combo-explorer')
+        boxComboExplorer = self._wtr.get_object('box-combo-explorer')
 
         slider.reparent(boxExplorer)
         comboExplorer.reparent(ctrlButtons)
@@ -181,71 +195,73 @@ class MainWindow:
 
     def __fromModeMini(self, requestedSize):
         """ Switch from mini mode to full mode """
-        self.paned.get_child1().show()
-        self.wtree.get_object('statusbar').show()
-        self.wtree.get_object('box-btn-tracklist').show()
-        self.wtree.get_object('scrolled-tracklist').show()
+        self._pan.get_child1().show()
+        self._wtr.get_object('statusbar').show()
+        self._wtr.get_object('box-btn-tracklist').show()
+        self._wtr.get_object('scrolled-tracklist').show()
 
         (winWidth, winHeight) = requestedSize
 
-        return (winWidth + self.paned.get_position(), prefs.get(__name__, 'full-win-height', 470))
+        return (winWidth + self._pan.get_position(), self._opt.get_int('full-win-height'))
 
 
     def __toModeMini(self, requestedSize):
         """ Switch from full mode to mini mode """
-        self.paned.get_child1().hide()
-        self.wtree.get_object('statusbar').hide()
-        self.wtree.get_object('box-btn-tracklist').hide()
-        self.wtree.get_object('scrolled-tracklist').hide()
+        self._pan.get_child1().hide()
+        self._wtr.get_object('statusbar').hide()
+        self._wtr.get_object('box-btn-tracklist').hide()
+        self._wtr.get_object('scrolled-tracklist').hide()
 
         (winWidth, winHeight) = requestedSize
 
-        return (winWidth - self.paned.get_position(), 1)
+        return (winWidth - self._pan.get_position(), 1)
 
 
     # --== Playlist Mode ==--
 
     def __fromModePlaylist(self, requestedSize):
         """ Switch from playlist mode to full mode """
-        self.paned.get_child1().show()
-        self.wtree.get_object('box-btn-tracklist').show()
+        self._pan.get_child1().show()
+        self._wtr.get_object('box-btn-tracklist').show()
 
         (winWidth, winHeight) = requestedSize
 
-        return (winWidth + self.paned.get_position(), winHeight)
+        return (winWidth + self._pan.get_position(), winHeight)
 
 
     def __toModePlaylist(self, requestedSize):
         """ Switch from full mode to playlist mode """
-        self.paned.get_child1().hide()
-        self.wtree.get_object('box-btn-tracklist').hide()
+        self._pan.get_child1().hide()
+        self._wtr.get_object('box-btn-tracklist').hide()
 
         (winWidth, winHeight) = requestedSize
 
-        return (winWidth - self.paned.get_position(), winHeight)
+        return (winWidth - self._pan.get_position(), winHeight)
 
 
     # --== GTK Handlers ==--
 
 
-    def onResize(self, win, rect):
+    def _onResize(self, win, rect):
         """ Save the new size of the window """
         # The first status label gets more or less a third of the window's width
-        self.wtree.get_object('hbox-status1').set_size_request(rect.width / 3 + 15, -1)
+        hbox = self._wtr.get_object('hbox-status1')
+        hbox.set_size_request(rect.width / 3 + 15, -1)
 
         # Save size and maximized state
-        if win.window is not None and not win.window.get_state() & Gdk.WINDOW_STATE_MAXIMIZED:
-            prefs.set(__name__, 'win-width',  rect.width)
-            prefs.set(__name__, 'win-height', rect.height)
+        if win is not None and not win.get_state() == Gdk.WindowState.MAXIMIZED:
+            vmode = self._opt.get('view-mode')
 
-            if prefs.get(__name__, 'view-mode', DEFAULT_VIEW_MODE) != consts.VIEW_MODE_MINI:
-                prefs.set(__name__, 'full-win-height', rect.height)
+            if vmode != gui.VIEW_MODE_MINI:
+                self._opt.set('full-win-height', rect.height)
+
+            self._opt.set('win-width',  rect.width )
+            self._opt.set('win-height', rect.height)
 
 
-    def onState(self, win, evt):
+    def _onState(self, win: Gtk.Window, e: Gdk.EventWindowState):
         """ Save the new state of the window """
-        prefs.set(__name__, 'win-is-maximized', bool(evt.new_window_state & Gdk.WINDOW_STATE_MAXIMIZED))
-
+        self._opt.set('is-maximized', e.new_window_state == Gdk.WindowState.MAXIMIZED)
 
     def onViewMode(self, item, mode):
         """ Wrapper for setViewMode() """
@@ -253,11 +269,14 @@ class MainWindow:
             self.setViewMode(mode)
 
 
-    def onDelete(self, win, event):
+    def _onSizeAlloc(self, item, rect=None):
+        self._opt.set('paned-pos', self._pan.get_position())
+
+    def _onQuit(self, item, data=None):
         """ Use our own quit sequence, that will itself destroy the window """
 
-        win.hide()
-        modules.postQuitMsg()
+        self._opt.save()
+        gui.atExit()
 
         return True
 
@@ -265,13 +284,17 @@ class MainWindow:
     def onShowPreferences(self, item):
         """ Show preferences """
 
-        modules.showPreferences()
+        gui.preferences.show()
 
+    def onInterrupt():
+        """ Handler for interrupt signals e.g., Ctrl-C """
+
+        # TODO: handle errors
 
     def onAbout(self, item):
         """ Show the about dialog box """
 
-        gui.about.show(self.window)
+        self.about()
 
 
     def onHelp(self, item):
