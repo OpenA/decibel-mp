@@ -16,10 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gtk, tools
+import gui
 
+from gi.repository import Gtk
 
-class Window(gtk.Window):
+class BaseWin:
     """
         Add some functionalities to gtk.Window:
          * Automatically save and restore size
@@ -28,65 +29,71 @@ class Window(gtk.Window):
          * Add a getWidget() function that acts like get_object()
     """
 
-    def __init__(self, resFile, container, modName, title, defaultWidth, defaultHeight):
+    def __init__(self, ui_file: str, win_id: str = 'win-main'):
         """ Constructor """
-        gtk.Window.__init__(self)
+        self._wtr: Gtk.Builder = gui.createWTree(ui_file)
         # Load only the top-level container of the given .ui file
-        self.wTree, self.wBuilder = tools.loadGladeFile(resFile, container)
-        self.visible = False
-        self.modName = modName
-        # Configure the window
-        self.set_title(title)
-        self.wBuilder.get_object(container).reparent(self)
-        if tools.prefs.get(modName, 'win-is-maximized', False):
-            self.maximize()
-        self.resize(tools.prefs.get(modName, 'win-width', defaultWidth), tools.prefs.get(modName, 'win-height', defaultHeight))
-        self.set_position(gtk.WIN_POS_CENTER)
-        # Connect GTK handlers
-        self.connect('delete-event',       self.onDelete)
-        self.connect('size-allocate',      self.onResize)
-        self.connect('window-state-event', self.onState)
+        self._win: Gtk.Window = self._wtr.get_object(win_id)
+        # show all elements
+        self._win.show_all()
 
+    @property
+    def title(self):
+        return self._win.get_title()
 
-    def getWidget(self, name):
+    @title.setter
+    def title(self, ttl: str):
+        self._win.set_title(ttl)
+
+    @property
+    def position(self):
+        return self._win.get_position()
+
+    @position.setter
+    def position(self, pos: int):
+        self._win.set_position(pos)
+
+    def attach(self, parent: type):
+        self._win.set_transient_for(parent._win)
+        self._win.set_position(gui.WIN_POS_CPARENT)
+
+    def resize(self, w: int, h: int):
+        """ Change window size """
+        self._win.resize(w,h)
+
+    def maximize(self, to_max = True):
+        """ Maximize the window """
+        self._win.maximized = to_max
+
+    def getWidget(self, name: str):
         """ Return the widget with the given name """
-        return self.wBuilder.get_object(name)
-
+        return self._wtr.get_object(name)
 
     def isVisible(self):
         """ Return True if the window is currently visible """
-        return self.visible
+        return self._win.get_visible()
 
+    def isMaximized(self):
+        """ Return True if the window is maximized """
+        return self._win.is_maximized()
 
     def show(self):
         """ Show the window if not visible, bring it to top otherwise """
-        self.visible = True
-        self.show_all()
-        self.present()
-
+        self._win.set_visible(True)
 
     def hide(self):
         """ Hide the window """
-        self.visible = False
-        gtk.Window.hide(self)
+        self._win.set_visible(False)
 
-
-    # --== GTK handlers ==--
-
-
-    def onResize(self, win, rect):
+    # Gtk Window Basic handlers
+    def setOnResize(self, callback: callable):
         """ Save the new size of the dialog """
-        if win.window is not None and not win.window.get_state() & gtk.gdk.WINDOW_STATE_MAXIMIZED:
-            tools.prefs.set(self.modName, 'win-width',  rect.width)
-            tools.prefs.set(self.modName, 'win-height', rect.height)
+        self._win.connect('size-allocate', callback)
 
-
-    def onState(self, win, evt):
+    def setOnStateChange(self, callback: callable):
         """ Save the new state of the dialog """
-        tools.prefs.set(self.modName, 'win-is-maximized', bool(evt.new_window_state & gtk.gdk.WINDOW_STATE_MAXIMIZED))
+        self._win.connect('window-state-event', callback)
 
-
-    def onDelete(self, win, evt):
+    def setOnClose(self, callback: callable):
         """ Hide the window instead of deleting it """
-        self.hide()
-        return True
+        self._win.connect('delete-event', callback)

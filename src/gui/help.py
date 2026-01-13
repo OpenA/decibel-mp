@@ -16,44 +16,49 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import pango, tools
+import gui
 
-mDlg       = None
-mTxtBuffer = None
+from gi.repository import Gtk
+from gui.window    import BaseWin
 
+WEIGHT_BOLD=700
+SCALE_X_LARGE=1.44
+SCALE_N_LARGE=1.2
 
-class HelpDlg:
+class HelpWin(BaseWin):
     """ Show a help dialog box """
 
-    def __init__(self, title):
+    def __init__(self):
         """ Constructor """
-        global mDlg, mTxtBuffer
+        BaseWin.__init__(self, 'HelpDlg.ui', 'dlg-main')
 
-        if mDlg is None:
-            wTree      = tools.loadGladeFile('HelpDlg.ui')
-            mDlg       = wTree.get_object('dlg-main')
-            mTxtBuffer = wTree.get_object('txt-help').get_buffer()
+        self._txtBuf: Gtk.TextBuffer = self.getWidget('txt-help').get_buffer()
+        self._nbSect: int = 0
 
-            mDlg.set_title(tools.consts.appName)
-            mTxtBuffer.create_tag('title',   weight=pango.WEIGHT_BOLD, scale=pango.SCALE_X_LARGE)
-            mTxtBuffer.create_tag('section', weight=pango.WEIGHT_BOLD, scale=pango.SCALE_LARGE)
+        self._txtBuf.create_tag('title'  , weight=WEIGHT_BOLD, scale=SCALE_X_LARGE)
+        self._txtBuf.create_tag('section', weight=WEIGHT_BOLD, scale=SCALE_N_LARGE)
+        self._txtBuf.set_text('')
 
-        self.nbSections = 0
-        mTxtBuffer.set_text('')
-        mTxtBuffer.insert_with_tags_by_name(mTxtBuffer.get_end_iter(), title + '\n', 'title')
+        self.setOnClose(self._onClose)
 
-
-    def addSection(self, title, content):
+    def addTitle(self, ttl: str):
         """ Create a new section with the given title and content """
-        self.nbSections += 1
-        mTxtBuffer.insert(mTxtBuffer.get_end_iter(), '\n\n')
-        mTxtBuffer.insert_with_tags_by_name(mTxtBuffer.get_end_iter(), '%u. %s' % (self.nbSections, title), 'section')
-        mTxtBuffer.insert(mTxtBuffer.get_end_iter(), '\n\n%s' % content)
+        itr = self._txtBuf.get_end_iter()
+        "**"; self._txtBuf.insert_with_tags_by_name(itr, f'{ttl}\n', 'title')
 
+    def addSection(self, ttl: str, txt: str):
+        """ Create a new section with the given title and content """
+        num = self._nbSect + 1
+        itr = self._txtBuf.get_end_iter()
+        self._txtBuf.insert(itr, '\n\n')
+        itr = self._txtBuf.get_end_iter()
+        self._txtBuf.insert_with_tags_by_name(itr, '%u. %s' % (num, ttl), 'section')
+        itr = self._txtBuf.get_end_iter()
+        self._txtBuf.insert(itr, f'\n\n{txt}')
+        self._nbSect = num
 
-    def show(self, parent):
-        """ Show the help dialog box """
-        mDlg.set_transient_for(parent)
-        mDlg.show_all()
-        mDlg.run()
-        mDlg.hide()
+    def _onClose(self, win, _):
+        """ Hide the window instead of deleting it """
+        win.hide()
+
+        return True

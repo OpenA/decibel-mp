@@ -18,28 +18,31 @@
 
 import gui
 
-from gi.repository import Gdk
+from gi.repository import Gtk, Gdk
 from tools.prefs   import UserPrefs
 from gui.about     import MsgDialog
+from gui.help      import HelpWin
+from gui.window    import BaseWin
 from tools         import prefs
 
 
-class MainWindow(MsgDialog):
+class MainWindow(MsgDialog, BaseWin):
 
     def __init__(self, p_usr: UserPrefs):
         """ Constructor """
-        wtree =  gui.createWTree('MainWindow.ui')
-        mmini = wtree.get_object('menu-mode-mini')
-        mfull = wtree.get_object('menu-mode-full')
-        mlean = wtree.get_object('menu-mode-lean')
-        mnetb = wtree.get_object('menu-mode-netbook')
-        mplst = wtree.get_object('menu-mode-playlist')
-        mpref = wtree.get_object('menu-preferences')
-        mabut = wtree.get_object('menu-about')
-        mhelp = wtree.get_object('menu-help')
-        mquit = wtree.get_object('menu-quit')
-        m_pan = wtree.get_object('pan-main')
-        m_win = wtree.get_object('win-main')
+        BaseWin.__init__(self, 'MainWindow.ui')
+
+        mmini = self.getWidget('menu-mode-mini')
+        mfull = self.getWidget('menu-mode-full')
+        mlean = self.getWidget('menu-mode-lean')
+        mnetb = self.getWidget('menu-mode-netbook')
+        mplst = self.getWidget('menu-mode-playlist')
+        mpref = self.getWidget('menu-preferences')
+        mabut = self.getWidget('menu-about')
+        mhelp = self.getWidget('menu-help')
+        mquit = self.getWidget('menu-quit')
+        m_pan = self.getWidget('pan-main')
+        m_win = self.getWidget('win-main')
 
         p_usr.set_defaults(prefs.PFX_WINMAIN, [
             ('is-maximized', gui.DEFAULT_MAXIMIZED ),
@@ -48,10 +51,8 @@ class MainWindow(MsgDialog):
             ('paned-pos'   , gui.DEFAULT_PANED_POS ),
             ('view-mode'   , gui.DEFAULT_VIEW_MODE ),
         ])
-        super(MsgDialog, self).__init__()
-
-        self._wtr = wtree; self._pan = m_pan
-        self._opt = p_usr; self._win = m_win
+        self._opt = p_usr; self._hlp = None
+        self._pan = m_pan
 
         # Enable the right radio menu button
         vmode = p_usr.get_int('view-mode')
@@ -95,8 +96,8 @@ class MainWindow(MsgDialog):
         mnetb.connect('activate', self.onViewMode, gui.VIEW_MODE_NETBOOK)
         mplst.connect('activate', self.onViewMode, gui.VIEW_MODE_PLAYLIST)
 
-        mhelp.connect('activate', self.onHelp)
-        mabut.connect('activate', self.onAbout)
+        mhelp.connect('activate', self._onHelp)
+        mabut.connect('activate', self._onAbout)
         mpref.connect('activate', self.onShowPreferences)
         mquit.connect('activate', self._onQuit)
 
@@ -278,9 +279,6 @@ class MainWindow(MsgDialog):
         self._opt.save()
         gui.atExit()
 
-        return True
-
-
     def onShowPreferences(self, item):
         """ Show preferences """
 
@@ -291,13 +289,15 @@ class MainWindow(MsgDialog):
 
         # TODO: handle errors
 
-    def onAbout(self, item):
+    def _onAbout(self, _):
         """ Show the about dialog box """
 
         self.about()
 
-
-    def onHelp(self, item):
-        """ Show help page in the web browser """
-
-        # TODO: open help file
+    def _onHelp(self, _):
+        """ Show help page in the new window """
+        if self._hlp is None:
+            self._hlp = HelpWin()
+            self._hlp.attach(self)
+        # ~~
+        self._hlp.show()

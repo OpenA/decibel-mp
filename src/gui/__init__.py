@@ -32,6 +32,12 @@ from tools         import consts
     VIEW_MODE_NETBOOK,
 ) = range(5)
 
+WIN_POS_NONE    = Gtk.WindowPosition.NONE
+WIN_POS_MOUSE   = Gtk.WindowPosition.MOUSE
+WIN_POS_CENTER  = Gtk.WindowPosition.CENTER
+WIN_POS_CALWAYS = Gtk.WindowPosition.CENTER_ALWAYS
+WIN_POS_CPARENT = Gtk.WindowPosition.CENTER_ON_PARENT
+
 DEFAULT_VIEW_MODE  = VIEW_MODE_FULL
 DEFAULT_PANED_POS  = 320
 DEFAULT_WIN_WIDTH  = 930
