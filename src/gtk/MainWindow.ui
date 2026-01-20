@@ -3,27 +3,25 @@
   <requires lib="gtk+" version="2.16" />
   <object class="GtkWindow" id="win-main">
     <property name="title">Decibel Audio Player</property>
-    <property name="window_position">center</property>
-    <accel-groups>
-      <group name="accelgroup1" />
-    </accel-groups>
+    <property name="width_request">930</property>
+    <property name="height_request">568</property>
     <child>
       <object class="GtkVBox" id="vbox1">
         <child>
           <object class="GtkMenuBar" id="menubar">
             <child>
               <object class="GtkMenuItem" id="menuitem1">
-                <property name="label" translatable="yes">_File</property>
+                <property name="label" translatable="yes">File</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu-file">
                     <child>
                       <object class="GtkImageMenuItem" id="menu-quit">
-                        <property name="label">gtk-quit</property>
+                        <property name="label" translatable="yes">Exit</property>
                         <property name="tooltip_text" translatable="yes">Quit the application</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="accel_group">accelgroup1</property>
+                        <property name="image">img-exit</property>
+                        <accelerator key="q" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                   </object>
@@ -32,18 +30,26 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem2">
-                <property name="label" translatable="yes">_Edit</property>
+                <property name="label" translatable="yes">Edit</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu-edit">
                     <child>
-                      <object class="GtkImageMenuItem" id="menu-preferences">
-                        <property name="label">gtk-preferences</property>
-                        <property name="tooltip_text" translatable="yes">Display preferences</property>
+                      <object class="GtkImageMenuItem" id="menu-equalizer">
+                        <property name="label" translatable="yes">Equalizer</property>
+                        <property name="tooltip_text" translatable="yes">Display Equalizer</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="accel_group">accelgroup1</property>
-                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK" />
+                        <property name="image">img-wave</property>
+                        <accelerator key="e" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkImageMenuItem" id="menu-preferences">
+                        <property name="label" translatable="yes">Preferences</property>
+                        <property name="tooltip_text" translatable="yes">Display Preferences</property>
+                        <property name="use_underline">True</property>
+                        <property name="image">img-prefs</property>
+                        <accelerator key="p" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
                   </object>
@@ -52,8 +58,7 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem3">
-                <property name="visible">True</property>
-                <property name="label" translatable="yes">_View</property>
+                <property name="label" translatable="yes">View</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu-view">
@@ -113,27 +118,25 @@
             </child>
             <child>
               <object class="GtkMenuItem" id="menuitem4">
-                <property name="label" translatable="yes">_Help</property>
+                <property name="label" translatable="yes">Help</property>
                 <property name="use_underline">True</property>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu-hel">
                     <child>
                       <object class="GtkImageMenuItem" id="menu-help">
-                        <property name="label" translatable="yes">Online _Help</property>
+                        <property name="label" translatable="yes">Online Help</property>
                         <property name="tooltip_text" translatable="yes">Open the online help web page</property>
                         <property name="use_underline">True</property>
-                        <property name="image">image5</property>
-                        <property name="use_stock">False</property>
+                        <property name="image">img-help</property>
                         <accelerator key="F1" signal="activate" />
                       </object>
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menu-about">
-                        <property name="label">gtk-about</property>
+                        <property name="label" translatable="yes">About</property>
                         <property name="tooltip_text" translatable="yes">Display about dialog box</property>
                         <property name="use_underline">True</property>
-                        <property name="use_stock">True</property>
-                        <property name="accel_group">accelgroup1</property>
+                        <property name="image">img-about</property>
                       </object>
                     </child>
                   </object>
@@ -642,13 +645,13 @@
       </object>
     </child>
   </object>
-  <object class="GtkImage" id="image5">
-    <property name="visible">True</property>
-    <property name="stock">gtk-help</property>
-  </object>
+  <object class="GtkImage" id="img-help"> <property name="icon_name">system-help-symbolic</property></object>
+  <object class="GtkImage" id="img-exit"> <property name="icon_name">application-exit-symbolic</property></object>
+  <object class="GtkImage" id="img-wave"> <property name="icon_name">gtkwave</property></object>
+  <object class="GtkImage" id="img-about"><property name="icon_name">help-about-symbolic</property></object>
+  <object class="GtkImage" id="img-prefs"><property name="icon_name">gtk-preferences</property></object>
   <object class="GtkAdjustment" id="adjustment1">
     <property name="upper">100</property>
     <property name="step_increment">5</property>
   </object>
-  <object class="GtkAccelGroup" id="accelgroup1" />
 </interface>

@@ -25,6 +25,7 @@ from gui.help      import HelpWin
 from gui.window    import BaseWin
 from tools         import prefs
 
+from gui.preferences import PrefsWin
 
 class MainWindow(MsgDialog, BaseWin):
 
@@ -37,10 +38,11 @@ class MainWindow(MsgDialog, BaseWin):
         mlean = self.getWidget('menu-mode-lean')
         mnetb = self.getWidget('menu-mode-netbook')
         mplst = self.getWidget('menu-mode-playlist')
-        mpref = self.getWidget('menu-preferences')
-        mabut = self.getWidget('menu-about')
-        mhelp = self.getWidget('menu-help')
-        mquit = self.getWidget('menu-quit')
+        m_prf = self.getWidget('menu-preferences')
+        m_eql = self.getWidget('menu-equalizer')
+        m_abo = self.getWidget('menu-about')
+        m_hlp = self.getWidget('menu-help')
+        m_qit = self.getWidget('menu-quit')
         m_pan = self.getWidget('pan-main')
         m_win = self.getWidget('win-main')
 
@@ -52,7 +54,7 @@ class MainWindow(MsgDialog, BaseWin):
             ('view-mode'   , gui.DEFAULT_VIEW_MODE ),
         ])
         self._opt = p_usr; self._hlp = None
-        self._pan = m_pan
+        self._pan = m_pan; self._pfs = self._eql = None
 
         # Enable the right radio menu button
         vmode = p_usr.get_int('view-mode')
@@ -96,10 +98,11 @@ class MainWindow(MsgDialog, BaseWin):
         mnetb.connect('activate', self.onViewMode, gui.VIEW_MODE_NETBOOK)
         mplst.connect('activate', self.onViewMode, gui.VIEW_MODE_PLAYLIST)
 
-        mhelp.connect('activate', self._onHelp)
-        mabut.connect('activate', self._onAbout)
-        mpref.connect('activate', self.onShowPreferences)
-        mquit.connect('activate', self._onQuit)
+        m_abo.connect('activate', lambda _: self.about())
+        m_prf.connect('activate', lambda _: self.openPreferences())
+        m_eql.connect('activate', lambda _: self.openEqualizer())
+        m_hlp.connect('activate', lambda _: self.openHelp())
+        m_qit.connect('activate', lambda _: self.closeMain())
 
     def setViewMode(self, mode):
         """ Change the view mode to the given one """
@@ -279,22 +282,23 @@ class MainWindow(MsgDialog, BaseWin):
         self._opt.save()
         gui.atExit()
 
-    def onShowPreferences(self, item):
+    def openPreferences(self):
         """ Show preferences """
+        if self._pfs is None:
+            self._pfs = PrefsWin()
+            self._pfs.attach(self)
+        # ~~
+        self._pfs.show()
 
-        gui.preferences.show()
+    def openEqualizer(self):
+        """ Show equalizer """
+        if self._eql is None:
+            self._eql = BaseWin('Equalizer.ui')
+            self._eql.attach(self)
+        # ~~
+        self._eql.show()
 
-    def onInterrupt():
-        """ Handler for interrupt signals e.g., Ctrl-C """
-
-        # TODO: handle errors
-
-    def _onAbout(self, _):
-        """ Show the about dialog box """
-
-        self.about()
-
-    def _onHelp(self, _):
+    def openHelp(self):
         """ Show help page in the new window """
         if self._hlp is None:
             self._hlp = HelpWin()

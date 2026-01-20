@@ -16,7 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gtk, gui, modules, tools
+import gui
+
+from gi.repository import Gtk, GObject
+from gui.window    import BaseWin
 
 from tools   import consts, icons
 from gettext import gettext as _
@@ -32,16 +35,14 @@ from gettext import gettext as _
 ) = range(6)
 
 
-class Preferences:
+class PrefsWin(BaseWin):
     """ Allow the user to load/unload/configure modules """
 
     def __init__(self):
         """ Constructor """
-        import gobject
+        BaseWin.__init__(self, 'Preferences.ui')
 
-        from gui import extListview, window
-
-        self.window  = window.Window('Preferences.ui', 'vbox1', __name__, _('Preferences'), 495, 440)
+        self.window  = self._win
         self.currCat = consts.MODCAT_NONE
 
         # List of modules
