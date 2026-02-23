@@ -87,7 +87,7 @@ class MainWindow(MsgDialog, BaseWin):
         m_pan.set_position(i_pos)
 
         # Finally connect the event handlers
-        m_win.connect('delete-event'      , self._onQuit)
+        m_win.connect('delete-event'      , lambda *_: self.closeMain())
         m_win.connect('size-allocate'     , self._onResize)
         m_win.connect('window-state-event', self._onState)
         m_pan.connect('size-allocate'     , self._onSizeAlloc)
@@ -276,11 +276,15 @@ class MainWindow(MsgDialog, BaseWin):
     def _onSizeAlloc(self, item, rect=None):
         self._opt.set('paned-pos', self._pan.get_position())
 
-    def _onQuit(self, item, data=None):
-        """ Use our own quit sequence, that will itself destroy the window """
+    def startMain(self):
+        """ Starts main loop and present the main window """
+        Gtk.main()
+        
+        return False
 
-        self._opt.save()
-        gui.atExit()
+    def closeMain(self):
+        """ Quit main loop sequence, that will itself destroy all windows """
+        Gtk.main_quit()
 
     def openPreferences(self):
         """ Show preferences """

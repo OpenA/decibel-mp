@@ -24,23 +24,24 @@ PFX_USER    = 'UserPrefs'
 
 class UserPrefs():
 
-    def __init__(self, cfg_dir: str):
+    def __init__(self):
         self._cfg = configparser.ConfigParser()
-        self._dir = cfg_dir
+        self._is_changed = False
 
-    def load(self, file: str = CONFIG_FILE):
+    def load(self, cfg_dir: str, file: str = CONFIG_FILE):
         """ Load user preferences from the config dir use Ini format """
-        with open(self._dir + file, 'r') as input:
+        with open(cfg_dir + file, 'r') as input:
             self._cfg.read_file(input)
 
-    def save(self, file: str = CONFIG_FILE):
+    def save(self, cfg_dir: str, file: str = CONFIG_FILE):
         """ Save user preferences to the config dir use Ini format """
-        with open(self._dir + file, 'w') as output:
+        with open(cfg_dir + file, 'w') as output:
             self._cfg.write(output)
 
     def set(self, key: str, val: str | int | float | bool, pfx: str = PFX_WINMAIN):
         """ Change the value of a preference """
-        self._cfg[pfx][key] = f'{val}' if type(val) is not bool else 'yes' if val else 'no'
+        self._cfg[pfx][key] = self.toConfigVal(val)
+        self._is_changed = True
 
     def get(self, key: str, pfx: str = PFX_WINMAIN):
         """ Retrieve the value of a preference """
@@ -52,7 +53,15 @@ class UserPrefs():
             self._cfg.add_section(pfx)
         for (k,v) in params:
             if k not in self._cfg[pfx]:
-                self.set(k, v, pfx)
+                self._cfg[pfx][k] = self.toConfigVal(v)
+
+    @staticmethod
+    def toConfigVal(v: str | int | float | bool):
+        return f'{v}' if type(v) is not bool else 'yes' if v else 'no'
+
+    def isChanged(self):
+        """ Returns True if settings params has been changed """
+        return self._is_changed
 
     def get_int  (self, key: str, pfx: str = PFX_WINMAIN): return int      (self.get(key, pfx))
     def get_bool (self, key: str, pfx: str = PFX_WINMAIN): return ('yes' == self.get(key, pfx))

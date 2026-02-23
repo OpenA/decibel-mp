@@ -38,16 +38,19 @@ gettext.bindtextdomain(consts.APP_NAME, consts.LOCALE_DIR)
 
 # Config initialization
 appcfg_dir = os.path.join(consts.CONFIG_DIR, consts.APP_NAME, '')
-user_prefs = prefs.UserPrefs( appcfg_dir )
+user_prefs = prefs.UserPrefs()
 if not os.path.exists(appcfg_dir):
     os.mkdir(appcfg_dir)
 elif os.path.exists(appcfg_dir + prefs.CONFIG_FILE):
-    user_prefs.load()
+    user_prefs.load(appcfg_dir)
 
 # Create the GUI
 win_main = MainWindow(user_prefs)
 
 # Let's go
 log.info('Started')
-gui.startUp()
+if win_main.startMain():
+    log.error('Fatal')
+if user_prefs.isChanged():
+    user_prefs.save(appcfg_dir)
 log.info('Stopped')

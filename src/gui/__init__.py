@@ -49,14 +49,3 @@ def createWTree(file: str):
     tree = Gtk.Builder()
     ____ = tree.add_from_file(consts.APP_UI_DIR + file)
     return tree
-
-def startUp():
-    """
-        Perform all the initialization stuff that is not mandatory to display the window
-        This function should be called within the GTK main loop, once the window has been displayed
-    """
-    Gtk.main()
-
-def atExit():
-    """ Final function, called just before exiting the Python interpreter """
-    Gtk.main_quit()
