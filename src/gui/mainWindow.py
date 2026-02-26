@@ -104,143 +104,83 @@ class MainWindow(MsgDialog, BaseWin):
         m_hlp.connect('activate', lambda _: self.openHelp())
         m_qit.connect('activate', lambda _: self.closeMain())
 
-    def setViewMode(self, mode):
+    def setViewMode(self, mode: int):
         """ Change the view mode to the given one """
-        currMode = self._opt.get_int('view-mode')
-
+        pvmod = self._opt.get_int('view-mode')
         # Give up if the new mode is the same as the current one
-        if currMode == mode:
+        if pvmod == mode:
             return
-
-        requestedSize = self._win.get_size()
-
         # First restore the initial window state (e.g., VIEW_MODE_FULL)
-        if   currMode == gui.VIEW_MODE_LEAN:     requestedSize = self.__fromModeLean(requestedSize)
-        elif currMode == gui.VIEW_MODE_MINI:     requestedSize = self.__fromModeMini(requestedSize)
-        elif currMode == gui.VIEW_MODE_NETBOOK:  requestedSize = self.__fromModeNetbook(requestedSize)
-        elif currMode == gui.VIEW_MODE_PLAYLIST: requestedSize = self.__fromModePlaylist(requestedSize)
-
+        if   pvmod == gui.VIEW_MODE_LEAN:     self._setLeanMode   (unset=True)
+        elif pvmod == gui.VIEW_MODE_MINI:     self._setFullMode   (unset=True, mini=True)
+        elif pvmod == gui.VIEW_MODE_NETBOOK:  self._setNetbookMode(unset=True)
+        elif pvmod == gui.VIEW_MODE_PLAYLIST: self._setFullMode   (unset=True)
         # Now we can switch to the new mode
-        if   mode == gui.VIEW_MODE_LEAN:     requestedSize = self.__toModeLean(requestedSize)
-        elif mode == gui.VIEW_MODE_MINI:     requestedSize = self.__toModeMini(requestedSize)
-        elif mode == gui.VIEW_MODE_NETBOOK:  requestedSize = self.__toModeNetbook(requestedSize)
-        elif mode == gui.VIEW_MODE_PLAYLIST: requestedSize = self.__toModePlaylist(requestedSize)
-
-        # Do only one resize(), because intermediate get_size() don't return the correct size until the event queue has been processed by GTK
-        self._win.resize(requestedSize[0], requestedSize[1])
-
+        if    mode == gui.VIEW_MODE_LEAN:     self._setLeanMode()
+        elif  mode == gui.VIEW_MODE_MINI:     self._setFullMode(mini=True)
+        elif  mode == gui.VIEW_MODE_NETBOOK:  self._setNetbookMode()
+        elif  mode == gui.VIEW_MODE_PLAYLIST: self._setFullMode()
         # Save the new mode
         self._opt.set('view-mode', mode)
 
-
     # --== Lean Mode ==--
-
-    def __fromModeLean(self, requestedSize):
+    def _setLeanMode(self, unset = False):
         """ Switch from lean mode to full mode """
-        self._wtr.get_object('box-btn-tracklist').show()
-
-        return requestedSize
-
-
-    def __toModeLean(self, requestedSize):
-        """ Switch from full mode to lean mode """
-        self._wtr.get_object('box-btn-tracklist').hide()
-
-        return requestedSize
-
-
-    # --== Netbook Mode ==--
-
-    def __fromModeNetbook(self, requestedSize):
-        """ Switch from netbook mode to full mode """
-        self._wtr.get_object('box-trkinfo').show()
-        self._wtr.get_object('box-btn-tracklist').show()
-
-        slider           = self._wtr.get_object('box-slider')
-        ctrlPanel        = self._wtr.get_object('box-ctrl-panel')
-        ctrlButtons      = self._wtr.get_object('box-ctrl-buttons-2')
-        comboExplorer    = self._wtr.get_object('combo-explorer')
-        ctrlButtonsBox   = self._wtr.get_object('box-ctrl-buttons-1')
-        boxComboExplorer = self._wtr.get_object('box-combo-explorer')
-
-        slider.reparent(ctrlPanel)
-        ctrlButtons.reparent(ctrlButtonsBox)
-        comboExplorer.reparent(boxComboExplorer)
-
-        slider.set_size_request(-1, -1)
-        comboExplorer.set_size_request(-1, -1)
-
-        return requestedSize
-
-
-    def __toModeNetbook(self, requestedSize):
-        """ Switch from full mode to netbook mode """
-        self._wtr.get_object('box-trkinfo').hide()
-        self._wtr.get_object('box-btn-tracklist').hide()
-
-        slider           = self._wtr.get_object('box-slider')
-        boxExplorer      = self._wtr.get_object('box-explorer')
-        ctrlButtons      = self._wtr.get_object('box-ctrl-buttons-2')
-        comboExplorer    = self._wtr.get_object('combo-explorer')
-        boxComboExplorer = self._wtr.get_object('box-combo-explorer')
-
-        slider.reparent(boxExplorer)
-        comboExplorer.reparent(ctrlButtons)
-        ctrlButtons.reparent(boxComboExplorer)
-
-        slider.set_size_request(-1, 20)
-        comboExplorer.set_size_request(45, -1)
-        boxExplorer.child_set_property(slider, 'expand', False)
-
-        return requestedSize
-
+        trackList = self.getWidget('box-btn-tracklist')
+        # ~~
+        trackList.set_visible(unset is True)
 
     # --== Mini Mode ==--
-
-    def __fromModeMini(self, requestedSize):
+    def _setFullMode(self, unset = False, mini = False):
         """ Switch from mini mode to full mode """
-        self._pan.get_child1().show()
-        self._wtr.get_object('statusbar').show()
-        self._wtr.get_object('box-btn-tracklist').show()
-        self._wtr.get_object('scrolled-tracklist').show()
+        trackList = self.getWidget('box-btn-tracklist')
+        trkScroll = self.getWidget('scrolled-tracklist')
+        statusBar = self.getWidget('statusbar')
+        panMain   = self.getWidget('pan-main')
+        panChild1 = panMain.get_child1()
+        ( iw,ih ) = self._win.get_size()
+        fHeight   = self._opt.get_int('full-win-height')
 
-        (winWidth, winHeight) = requestedSize
+        if mini : ih  = fHeight if unset else -1
+        if unset: iw += panMain.get_position()
+        else    : iw -= panMain.get_position()
 
-        return (winWidth + self._pan.get_position(), self._opt.get_int('full-win-height'))
+        statusBar.set_visible(unset is True and mini is True)
+        trkScroll.set_visible(unset is True and mini is True)
+        panChild1.set_visible(unset is True)
+        trackList.set_visible(unset is True)
+        # Do only one resize(), because intermediate get_size() don't return the correct size until the event queue has been processed by GTK
+        self._win.resize(iw, ih)
 
+    # --== Lean Mode ==--
+    def _setNetbookMode(self, unset = False):
+        """ Switch from netbook mode to full mode """
+        trackList = self.getWidget('box-btn-tracklist')
+        trackInfo = self.getWidget('box-trkinfo')
+        boxSlider = self.getWidget('box-slider')
+        boxExplor = self.getWidget('box-explorer')
+        ctrlPanel = self.getWidget('box-ctrl-panel')
+        ctrlBtns1 = self.getWidget('box-ctrl-buttons-1')
+        ctrlBtns2 = self.getWidget('box-ctrl-buttons-2')
+        boxCmbExp = self.getWidget('box-combo-explorer')
+        combExplr = self.getWidget('combo-explorer')
 
-    def __toModeMini(self, requestedSize):
-        """ Switch from full mode to mini mode """
-        self._pan.get_child1().hide()
-        self._wtr.get_object('statusbar').hide()
-        self._wtr.get_object('box-btn-tracklist').hide()
-        self._wtr.get_object('scrolled-tracklist').hide()
+        if not unset:
+            boxSlider.reparent(boxExplor)
+            combExplr.reparent(ctrlBtns2); b1 = -1
+            ctrlBtns2.reparent(boxCmbExp); a2 = -1
+        else:
+            boxSlider.reparent(ctrlPanel)
+            ctrlBtns2.reparent(ctrlBtns1); b1 = 45
+            combExplr.reparent(boxCmbExp); a2 = 20
 
-        (winWidth, winHeight) = requestedSize
+        trackList.set_visible(unset is True)
+        trackInfo.set_visible(unset is True)
+        boxSlider.set_size_request(-1, a2)
+        combExplr.set_size_request(b1, -1)
 
-        return (winWidth - self._pan.get_position(), 1)
-
-
-    # --== Playlist Mode ==--
-
-    def __fromModePlaylist(self, requestedSize):
-        """ Switch from playlist mode to full mode """
-        self._pan.get_child1().show()
-        self._wtr.get_object('box-btn-tracklist').show()
-
-        (winWidth, winHeight) = requestedSize
-
-        return (winWidth + self._pan.get_position(), winHeight)
-
-
-    def __toModePlaylist(self, requestedSize):
-        """ Switch from full mode to playlist mode """
-        self._pan.get_child1().hide()
-        self._wtr.get_object('box-btn-tracklist').hide()
-
-        (winWidth, winHeight) = requestedSize
-
-        return (winWidth - self._pan.get_position(), winHeight)
+        if not unset:
+            boxExplor.child_set_property(boxSlider, 'expand', False)
 
 
     # --== GTK Handlers ==--
