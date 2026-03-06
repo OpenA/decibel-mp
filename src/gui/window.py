@@ -16,11 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import gui
-
+from tools.consts  import ICR_EXIT, ICR_MINIT, NO_TITLE, NO_ARTIST
 from gi.repository import Gtk
 
-class BaseWin:
+class MainWinApp(Gtk.Application):
     """
         Add some functionalities to gtk.Window:
          * Automatically save and restore size
@@ -29,33 +28,61 @@ class BaseWin:
          * Add a getWidget() function that acts like get_object()
     """
 
-    def __init__(self, ui_file: str, win_id: str = 'win-main'):
+    def __init__(self, app_id: str, app_flags: int):
         """ Constructor """
-        self._wtr: Gtk.Builder = gui.createWTree(ui_file)
+        super().__init__(application_id=app_id, flags=app_flags)
         # Load only the top-level container of the given .ui file
-        self._win: Gtk.Window = self._wtr.get_object(win_id)
+        self._tre: Gtk.Builder   = None
+        self._win: Gtk.Window    = None
+        self._hdb: Gtk.HeaderBar = None
         # show all elements
-        self._win.show_all()
+        self._played = self._paused = False
+
+    def do_activate(self):
+        # Access a resource using its full resource path (prefix + filename)
+        m_tre = self._tre = Gtk.Builder.new_from_resource("/org/decibel-mp/gtk/MainWindow.ui")
+        m_win = self._win = m_tre.get_object("win_main")
+        h_bar = self._hdb = m_tre.get_object("hd_bar")
+
+        c_prv = m_tre.get_object("ctrl_btn_prev"); b_eqz = m_tre.get_object("menu_btn_eqlz")
+        c_nxt = m_tre.get_object("ctrl_btn_next"); b_qut = m_tre.get_object("menu_btn_quit")
+        c_ply = m_tre.get_object("ctrl_btn_play"); b_abt = m_tre.get_object("menu_btn_about")
+        c_stp = m_tre.get_object("ctrl_btn_stop"); b_xxx = m_tre.get_object("act1_btn_close")
+
+        self.add_window(m_win)
+
+        h_bar.set_subtitle(NO_ARTIST)
+        h_bar.set_title   (NO_TITLE)
+        m_win.present()
+        b_qut.connect('clicked', lambda _: self.quit())
+        b_xxx.connect('clicked', lambda _: self.quit() if not self._played else self.minimize())
+        c_ply.connect('clicked', lambda _: self.setStatusPlay(played=True, paused=not self._paused))
+        c_stp.connect('clicked', lambda _: self.setStatusPlay())
+
+    @property
+    def state(self):
+        """ Return window state flags """
+        return self._win.get_state()
 
     @property
     def title(self):
-        return self._win.get_title()
+        return self._hdb.get_title()
 
     @title.setter
     def title(self, ttl: str):
-        self._win.set_title(ttl)
+        self._hdb.set_title(ttl)
 
     @property
-    def position(self):
-        return self._win.get_position()
+    def artist(self):
+        return self._hdb.get_subtitle()
 
-    @position.setter
-    def position(self, pos: int):
-        self._win.set_position(pos)
+    @artist.setter
+    def artist(self, ttl: str):
+        self._hdb.set_subtitle(ttl)
 
-    def attach(self, parent: type):
-        self._win.set_transient_for(parent._win)
-        self._win.set_position(gui.WIN_POS_CPARENT)
+    def minimize(self):
+        """ Minimize the window """
+        self._win.iconify()
 
     def resize(self, w: int, h: int):
         """ Change window size """
@@ -67,7 +94,7 @@ class BaseWin:
 
     def getWidget(self, name: str):
         """ Return the widget with the given name """
-        return self._wtr.get_object(name)
+        return self._tre.get_object(name)
 
     def isVisible(self):
         """ Return True if the window is currently visible """
@@ -86,14 +113,20 @@ class BaseWin:
         self._win.set_visible(False)
 
     # Gtk Window Basic handlers
-    def setOnResize(self, callback: callable):
+    def onResizeChange(self, callback: callable):
         """ Save the new size of the dialog """
         self._win.connect('size-allocate', callback)
 
-    def setOnStateChange(self, callback: callable):
+    def onStateChange(self, callback: callable):
         """ Save the new state of the dialog """
         self._win.connect('window-state-event', callback)
 
-    def setOnClose(self, callback: callable):
+    def setStatusPlay(self, played = False, paused = False):
         """ Hide the window instead of deleting it """
-        self._win.connect('delete-event', callback)
+        btn_play  = self.getWidget('ctrl_btn_play')
+        btn_close = self.getWidget('act1_btn_close')
+        ico_play  = self.getWidget('mp-play' ); self._played = played
+        ico_pause = self.getWidget('mp-pause'); self._paused = paused
+
+        btn_play .set_image(ico_play if not paused or  not played else ico_pause)
+        btn_close.set_label(ICR_EXIT if not paused and not played else ICR_MINIT)

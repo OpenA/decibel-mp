@@ -20,32 +20,15 @@ import gi
 
 gi.require_version('Gtk', '3.0')
 
-from gi.repository import Gtk
-from tools         import consts
+from gi.repository import Gtk, Gio
 
-# --- View modes
-(
-    VIEW_MODE_FULL,
-    VIEW_MODE_LEAN,
-    VIEW_MODE_MINI,
-    VIEW_MODE_PLAYLIST,
-    VIEW_MODE_NETBOOK,
-) = range(5)
-
-WIN_POS_NONE    = Gtk.WindowPosition.NONE
-WIN_POS_MOUSE   = Gtk.WindowPosition.MOUSE
-WIN_POS_CENTER  = Gtk.WindowPosition.CENTER
-WIN_POS_CALWAYS = Gtk.WindowPosition.CENTER_ALWAYS
-WIN_POS_CPARENT = Gtk.WindowPosition.CENTER_ON_PARENT
-
-DEFAULT_VIEW_MODE  = VIEW_MODE_FULL
+DEFAULT_APP_FLAGS  = Gio.ApplicationFlags.FLAGS_NONE
 DEFAULT_PANED_POS  = 320
 DEFAULT_WIN_WIDTH  = 930
 DEFAULT_WIN_HEIGHT = 568
 DEFAULT_MAXIMIZED  = False
 
-def createWTree(file: str):
+def register_resource(ui_file: str):
     """ Load the given Glade file and return the tree of widgets """
-    tree = Gtk.Builder()
-    ____ = tree.add_from_file(consts.APP_UI_DIR + file)
-    return tree
+    res = Gio.Resource.load(ui_file)
+    ___ = Gio.resources_register(res)

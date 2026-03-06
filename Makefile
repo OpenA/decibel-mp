@@ -21,11 +21,14 @@ CONF_IN = -e 's!@DATADIR@!$(DATADIR)!'\
           -e 's!@VERSION@!$(version)!'
 
 wrkdir = build
-resdir = res
+ui_res = ui.gresource
 locdir = $(wrkdir)/mo
 
 all: locales
-	@ sed $(CONF_IN) $(resdir)/decibel-mp.sh > $(wrkdir)/decibel-mp
+	@ sed $(CONF_IN) res/decibel-mp.sh      > $(wrkdir)/decibel-mp
+	@ sed $(CONF_IN) res/decibel-mp.1       > $(wrkdir)/decibel-mp.1
+	@ sed $(CONF_IN) res/decibel-mp.desktop > $(wrkdir)/decibel-mp.desktop
+	@ glib-compile-resources --target=$(wrkdir)/$(ui_res) gtk/ui.gresource.xml
 
 locales:
 	mkdir -p $(locdir)
@@ -49,8 +52,9 @@ install:
 	                  $(MANDIR) $(ICONDIR) $(PYDIR)
 
 	install -m 755 $(wrkdir)/decibel-mp         $(BINDIR)
-	install -m 644 $(resdir)/decibel-mp.1       $(MANDIR)
-	install -m 644 $(resdir)/decibel-mp.desktop $(APPDIR)
+	install -m 644 $(wrkdir)/decibel-mp.1       $(MANDIR)
+	install -m 644 $(wrkdir)/decibel-mp.desktop $(APPDIR)
+	install -m 644 $(wrkdir)/$(ui_res)          $(PYDIR)
 
 remove:
 	rm -f $(BINDIR)/decibel-mp
@@ -62,5 +66,6 @@ remove:
 clean:
 	rm -f $(locdir)/*.mo
 	rm -f $(wrkdir)/decibel-mp
+	rm -f $(wrkdir)/$(ui_res)
 
 .PHONY: all

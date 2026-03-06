@@ -21,11 +21,16 @@ import os, sys, gettext, locale, random
 
 import gui, tools
 
-from gui.mainWindow import MainWindow
+from gui   import window
 from tools import consts, log, prefs
 
+BUILD_NAME = os.environ['DECIBEL_BUILD_NAME']
+GTK_UI_RES = os.environ['DECIBEL_GTK_UI_RES']
+CONFIG_DIR = os.environ['DECIBEL_CONFIG_DIR']
+LOCALE_DIR = os.environ['DECIBEL_LOCALE_DIR']
+
 # Init Logger
-log = log.Logger(consts.OUTPUT_LOG)
+log = log.Logger()
 
 # Init Random-generator
 start_t = tools.timeNow()
@@ -33,23 +38,31 @@ random.seed( start_t )
 
 # Init Localization
 locale.setlocale(locale.LC_ALL, '')
-gettext.textdomain(consts.APP_NAME)
-gettext.bindtextdomain(consts.APP_NAME, consts.LOCALE_DIR)
+gettext.textdomain(BUILD_NAME)
+gettext.bindtextdomain(BUILD_NAME, LOCALE_DIR)
 
 # Config initialization
-appcfg_dir = os.path.join(consts.CONFIG_DIR, consts.APP_NAME, '')
+appcfg_dir = os.path.join(CONFIG_DIR, BUILD_NAME, '')
 user_prefs = prefs.UserPrefs()
 if not os.path.exists(appcfg_dir):
     os.mkdir(appcfg_dir)
 elif os.path.exists(appcfg_dir + prefs.CONFIG_FILE):
     user_prefs.load(appcfg_dir)
 
+# Merge defaults settings after load user cfg
+user_prefs.merge_defaults(prefs.PFX_WINMAIN, [
+    ('is-maximized', gui.DEFAULT_MAXIMIZED ),
+    ('win-width'   , gui.DEFAULT_WIN_WIDTH ),
+    ('win-height'  , gui.DEFAULT_WIN_HEIGHT),
+    ('pan-position', gui.DEFAULT_PANED_POS ),
+])
+# Init gtk ui tree
+gui.register_resource(GTK_UI_RES)
 # Create the GUI
-win_main = MainWindow(user_prefs)
-
+app_main = window.MainWinApp(consts.APP_PROG_ID, gui.DEFAULT_APP_FLAGS)
 # Let's go
 log.info('Started')
-if win_main.startMain():
+if app_main.run():
     log.error('Fatal')
 if user_prefs.isChanged():
     user_prefs.save(appcfg_dir)

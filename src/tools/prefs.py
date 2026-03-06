@@ -47,8 +47,8 @@ class UserPrefs():
         """ Retrieve the value of a preference """
         return self._cfg[pfx][key]
 
-    def set_defaults(self, pfx: str, params: list[tuple]):
-        """ Init default values without rewriting existings """
+    def merge_defaults(self, pfx: str, params: list[tuple]):
+        """ Add's default values if it's not exist """
         if pfx not in self._cfg:
             self._cfg.add_section(pfx)
         for (k,v) in params:

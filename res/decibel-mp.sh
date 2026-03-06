@@ -24,6 +24,7 @@ PYDIR="$DATADIR/$APPNAME"
 
 p_ctrl=''
 p_list=''
+i_debg=''
 
 for i in "$@"; do
   case $i in
@@ -49,13 +50,11 @@ for i in "$@"; do
 done
 
 py_player() {
-  export DECIBEL_UI_DIR="$PYDIR/gtk/"
-  export DECIBEL_HOMEURL="$HOMEURL"
-  export DECIBEL_VERSION="$VERSION"
-  export DECIBEL_APPNAME="$APPNAME"
+  export DECIBEL_BUILD_NAME="$APPNAME"
+  export DECIBEL_GTK_UI_RES="$PYDIR/ui.gresource"
   export DECIBEL_CONFIG_DIR="$HOME/.config"
   export DECIBEL_LOCALE_DIR="$DATADIR/locale"
-  export DECIBEL_OUTPUT_LOG=""
+  export DECIBEL_DEBUG_MODE="$i_debg"
 
   env python3 "$PYDIR/player-instance.py"
 }

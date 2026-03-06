@@ -16,26 +16,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-import os
-
-# Get ENV constants
+# --- App Init
 APP_TITLE   = 'Decibel Music Player'
-APP_UI_DIR  = os.environ['DECIBEL_UI_DIR']
-APP_HOMEURL = os.environ['DECIBEL_HOMEURL']
-APP_VERSION = os.environ['DECIBEL_VERSION']
-APP_NAME    = os.environ['DECIBEL_APPNAME']
+APP_VERSION = '1.0~dev'
+APP_PROG_ID = 'git.opena.decibel-mp'
+APP_HOMEURL = 'https://github.com/OpenA/decibel-mp'
 
-CONFIG_DIR  = os.environ['DECIBEL_CONFIG_DIR']
-LOCALE_DIR  = os.environ['DECIBEL_LOCALE_DIR']
-OUTPUT_LOG  = os.environ['DECIBEL_OUTPUT_LOG']
+# --- Text Icons
+ICR_EXIT  = '⊗'
+ICR_MINIT = '⊙'
 
+# --- Track Info
+NO_TITLE  = '(no Title)'
+NO_ARTIST = '. . . .'
 
-# --- Tracks
 UNKNOWN_DATE         = 0
 UNKNOWN_GENRE        = 'Unknown Genre'
-UNKNOWN_TITLE        = 'Unknown Title'
 UNKNOWN_ALBUM        = 'Unknown Album'
-UNKNOWN_ARTIST       = 'Unknown Artist'
 UNKNOWN_LENGTH       = 0
 UNKNOWN_BITRATE      = 0
 UNKNOWN_ENC_MODE     = 0
