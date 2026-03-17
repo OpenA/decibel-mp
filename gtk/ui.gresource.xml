@@ -3,5 +3,6 @@
 	<gresource prefix="/org/decibel-mp">
 		<file compressed="true">gtk/MainWindow.ui</file>
 		<file compressed="true">gtk/Equalizer.ui</file>
+		<file alias="license.txt">LICENSE</file>
 	</gresource>
 </gresources>

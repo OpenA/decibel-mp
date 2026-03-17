@@ -16,10 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
 
-from gi.repository import Gtk
-
-from tools   import consts
-from gettext import gettext as _
+from gi.repository import Gtk, Gio
+from tools.consts  import APP_TITLE, APP_VERSION, APP_HOMEURL
+from gettext       import gettext as _
 
 
 class MsgDialog:
@@ -74,15 +73,15 @@ class MsgDialog:
             dlg.set_transient_for(self._win)
 
         # Set credit information
-        dlg.set_name(consts.APP_NAME)
+        dlg.set_program_name(APP_TITLE)
         dlg.set_comments('...And Music For All')
-        dlg.set_version(consts.APP_VERSION)
-        dlg.set_website(consts.APP_HOMEURL)
-        dlg.set_website_label(consts.APP_HOMEURL)
+        dlg.set_version(APP_VERSION)
+        dlg.set_website(APP_HOMEURL)
+        dlg.set_website_label(_('Homepage:'))
         dlg.set_translator_credits(_('translator-credits'))
 
         dlg.set_artists([
-            _('Decibel Audio Player icon:'),
+            _('Program logo:'),
             '    Sébastien Durel <sebastien.durel@gmail.com>',
             '',
             _('Other icons:'),
@@ -101,10 +100,11 @@ class MsgDialog:
         # Set logo
         #dlg.set_logo(gtk.gdk.pixbuf_new_from_file(consts.fileImgIcon128))
 
-        # Load the licence from the disk if possible
-        #if os.path.isfile(consts.fileLicense):
-        #    dlg.set_license(open(consts.fileLicense).read())
-        #    dlg.set_wrap_license(True)
+        # Load the licence from the gresource
+        txt = Gio.resources_lookup_data('/org/decibel-mp/license.txt', 0)
+        if txt is not None:
+            dlg.set_license(txt.get_data().decode())
+            dlg.set_wrap_license(True)
 
         dlg.run()
         dlg.destroy()

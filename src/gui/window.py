@@ -18,8 +18,9 @@
 
 from tools.consts  import ICR_EXIT, ICR_MINIT, NO_TITLE, NO_ARTIST
 from gi.repository import Gtk
+from gui.about     import MsgDialog
 
-class MainWinApp(Gtk.Application):
+class MainWinApp(Gtk.Application, MsgDialog):
     """
         Add some functionalities to gtk.Window:
          * Automatically save and restore size
@@ -54,6 +55,7 @@ class MainWinApp(Gtk.Application):
         h_bar.set_subtitle(NO_ARTIST)
         h_bar.set_title   (NO_TITLE)
         m_win.present()
+        b_abt.connect('clicked', lambda _: self.about())
         b_qut.connect('clicked', lambda _: self.quit())
         b_xxx.connect('clicked', lambda _: self.quit() if not self._played else self.minimize())
         c_ply.connect('clicked', lambda _: self.setStatusPlay(played=True, paused=not self._paused))
